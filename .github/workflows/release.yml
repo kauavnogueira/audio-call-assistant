@@ -1,0 +1,95 @@
+name: Release Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Build Linux Desktop Packages (AppImage & deb)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend and electron bundle
+        run: npm run build
+
+      - name: Package Linux Desktop App (AppImage & deb)
+        run: npx electron-builder --linux AppImage deb --publish never
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: |
+            release/*.AppImage
+            release/*.deb
+
+  build-windows:
+    name: Build Windows Desktop Packages (NSIS Setup & Portable exe)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend and electron bundle
+        run: npm run build
+
+      - name: Package Windows Desktop App (Setup & Portable exe)
+        run: npx electron-builder --win nsis portable --publish never
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            release/*.exe
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-linux, build-windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload Release Binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/linux-binaries/*
+            artifacts/windows-binaries/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

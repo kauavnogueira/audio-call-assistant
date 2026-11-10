@@ -1,0 +1,97 @@
+{
+  "name": "assistente-pessoal-de-voz",
+  "version": "1.0.0",
+  "description": "Assistente Pessoal de Voz - Desktop AI Voice Assistant for Audio Calls & Live Media Capture",
+  "homepage": "https://github.com/kauavn/audio-call-assistant",
+  "author": "kauavn <kauavn@users.noreply.github.com>",
+  "main": "dist/electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:electron && electron . --no-sandbox",
+    "dev:app": "npm run build:electron && electron . --no-sandbox",
+    "dev:win": "npm run build:electron && electron .",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "vite",
+    "build:client": "vite build",
+    "build:electron": "esbuild electron/main.ts --bundle --platform=node --format=cjs --outfile=dist/electron/main.cjs --external:electron && esbuild electron/preload.ts --bundle --platform=node --format=cjs --outfile=dist/electron/preload.cjs --external:electron",
+    "build": "npm run build:client && npm run build:electron",
+    "dist": "npm run build && electron-builder --linux",
+    "dist:appimage": "npm run build && electron-builder --linux AppImage",
+    "dist:deb": "npm run build && electron-builder --linux deb",
+    "dist:win": "npm run build && electron-builder --win",
+    "pack": "npm run build && electron-builder --dir",
+    "start": "tsx server/index.ts",
+    "test:audio": "tsx tests/test_audio.ts",
+    "test:ai": "tsx tests/test_ai.ts"
+  },
+  "dependencies": {
+    "lucide-react": "^1.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  },
+  "build": {
+    "appId": "com.assistentepessoal.voz",
+    "productName": "Assistente Pessoal de Voz",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "build/icon.png",
+      "build/tray.png",
+      "build/icon.ico",
+      "icon.svg",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "kauavn <kauavn@users.noreply.github.com>",
+      "icon": "build/icon.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Assistente Pessoal de Voz",
+      "artifactName": "Assistente-Pessoal-de-Voz-${version}-Setup.exe"
+    },
+    "portable": {
+      "artifactName": "Assistente-Pessoal-de-Voz-${version}-Portable.exe"
+    }
+  }
+}
